@@ -1,31 +1,22 @@
-import requests
+import urllib.request
 import json
 
-# Replace with your Mac's IP address or hostname
-OLLAMA_HOST = "http://your_mac_ip_or_hostname:11434"
+def query_ollama(prompt, model="nous-hermes2"):
+    url = "http://localhost:11434/api/generate"
+    data = json.dumps({"model": model, "prompt": prompt}).encode('utf-8')
+    req = urllib.request.Request(url, data=data, headers={'Content-Type': 'application/json'})
+    
+    with urllib.request.urlopen(req) as response:
+        response_data = response.read().decode('utf-8')
+        json_responses = [json.loads(line) for line in response_data.strip().split('\n')]
+        
+        full_response = ''.join(resp.get('response', '') for resp in json_responses)
+        return full_response
 
-def query_ollama(prompt, model="nous-hermes"):
-    headers = {
-        "Content-Type": "application/json",
-    }
-    
-    data = {
-        "model": model,
-        "prompt": prompt,
-        "stream": False
-    }
-    
-    response = requests.post(f"{OLLAMA_HOST}/api/generate", headers=headers, data=json.dumps(data))
-    
-    if response.status_code == 200:
-        return response.json()['response']
-    else:
-        raise Exception(f"Error: {response.status_code}, {response.text}")
-
-# Example usage
 try:
-    prompt = "Generate an interview question about Python."
-    response = query_ollama(prompt)
+    response = query_ollama(
+        "You are an expert in finance, python, SQL, banking, and financial modeling. You are also a phenomenal, thought-provoking mentor who is helping this user prepare for a technical interview in finance, banking, financial modeling, python, and SQL. Generate 100 questions and answers for technical questions pertaining to these topics. Consider typical tools that might be used in these roles, and make sure the answers are succinct yet answer the question in depth, and include short code if necessary for the question."
+        )
     print(response)
 except Exception as e:
     print(f"An error occurred: {e}")
